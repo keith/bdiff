@@ -1,0 +1,18 @@
+[package]
+name = "bindiff"
+version = "0.1.0"
+edition = "2024"
+description = "A terminal UI for progressively comparing binaries"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+crossterm = "0.29"
+ratatui = { version = "0.30", default-features = false, features = ["crossterm_0_29"] }
+sha2 = "0.11"
+similar = "3.1"
+tempfile = "3.27"
+
+[profile.release]
+lto = "thin"
+strip = true
