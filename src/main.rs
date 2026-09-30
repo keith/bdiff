@@ -12,7 +12,7 @@ use crate::artifact::Analysis;
 use crate::passes::{PassRegistry, run_report};
 
 #[derive(Debug, Parser)]
-#[command(version, about)]
+#[command(version = option_env!("BDIFF_VERSION").unwrap_or("dev"), about)]
 struct Cli {
     /// The binary or archive on the left side.
     left: PathBuf,
