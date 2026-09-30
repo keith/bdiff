@@ -54,7 +54,7 @@ jobs:
         run: |
           package="bdiff-${BDIFF_VERSION}-${{ matrix.target }}"
           mkdir -p "stage/${package}" dist
-          cp "target/${{ matrix.target }}/release/bdiff" README.md LICENSE "stage/${package}/"
+          cp "target/${{ matrix.target }}/release/bdiff" "stage/${package}/"
           tar -C stage -czf "dist/${package}.tar.gz" "${package}"
 
       - name: Package Windows binary
@@ -63,7 +63,7 @@ jobs:
         run: |
           $package = "bdiff-$env:BDIFF_VERSION-${{ matrix.target }}"
           New-Item -ItemType Directory -Force -Path "stage/$package", dist
-          Copy-Item -Path "target/${{ matrix.target }}/release/bdiff.exe", README.md, LICENSE -Destination "stage/$package/"
+          Copy-Item -Path "target/${{ matrix.target }}/release/bdiff.exe" -Destination "stage/$package/"
           Compress-Archive -Path "stage/$package" -DestinationPath "dist/$package.zip"
 
       - name: Upload release asset
@@ -105,8 +105,8 @@ jobs:
             target/aarch64-apple-darwin/release/bdiff \
             target/x86_64-apple-darwin/release/bdiff \
             -output "stage/${package}/bdiff"
-          lipo "stage/${package}/bdiff" -verify_arch arm64 x86_64
-          cp README.md LICENSE "stage/${package}/"
+          lipo "stage/${package}/bdiff" -verify_arch arm64
+          lipo "stage/${package}/bdiff" -verify_arch x86_64
           tar -C stage -czf "dist/${package}.tar.gz" "${package}"
 
       - name: Upload release asset
