@@ -159,8 +159,14 @@ jobs:
           BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
         run: cp "$BUNDLE_PATH" "dist/bdiff-${BDIFF_VERSION}-attestation.json"
 
-      - name: Create release with generated notes
+      - name: Create draft release with generated notes
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$BDIFF_VERSION" dist/* --target "$GITHUB_SHA" --generate-notes --notes-file release-notes.md
+        run: gh release create "$BDIFF_VERSION" dist/* --target "$GITHUB_SHA" --generate-notes --notes-file release-notes.md --draft
+
+      - name: Publish immutable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit "$BDIFF_VERSION" --draft=false
