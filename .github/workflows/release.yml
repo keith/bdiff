@@ -1,0 +1,153 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            platform: unix
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            platform: unix
+          - runner: windows-2025
+            target: x86_64-pc-windows-msvc
+            platform: windows
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Install Rust target
+        shell: bash
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup target add "${{ matrix.target }}"
+
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Package Unix binary
+        if: matrix.platform == 'unix'
+        shell: bash
+        run: |
+          package="bindiff-${GITHUB_REF_NAME}-${{ matrix.target }}"
+          mkdir -p "stage/${package}" dist
+          cp "target/${{ matrix.target }}/release/bindiff" README.md LICENSE "stage/${package}/"
+          tar -C stage -czf "dist/${package}.tar.gz" "${package}"
+
+      - name: Package Windows binary
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $package = "bindiff-$env:GITHUB_REF_NAME-${{ matrix.target }}"
+          New-Item -ItemType Directory -Force -Path "stage/$package", dist
+          Copy-Item -Path "target/${{ matrix.target }}/release/bindiff.exe", README.md, LICENSE -Destination "stage/$package/"
+          Compress-Archive -Path "stage/$package" -DestinationPath "dist/$package.zip"
+
+      - name: Upload release asset
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+          compression-level: 0
+
+  build-macos:
+    name: Build universal-apple-darwin
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Install Rust targets
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Build both architectures
+        run: |
+          cargo build --release --locked --target aarch64-apple-darwin
+          cargo build --release --locked --target x86_64-apple-darwin
+
+      - name: Create and package universal binary
+        run: |
+          package="bindiff-${GITHUB_REF_NAME}-universal-apple-darwin"
+          mkdir -p "stage/${package}" dist
+          lipo -create \
+            target/aarch64-apple-darwin/release/bindiff \
+            target/x86_64-apple-darwin/release/bindiff \
+            -output "stage/${package}/bindiff"
+          lipo -verify_arch arm64 x86_64 "stage/${package}/bindiff"
+          cp README.md LICENSE "stage/${package}/"
+          tar -C stage -czf "dist/${package}.tar.gz" "${package}"
+
+      - name: Upload release asset
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-universal-apple-darwin
+          path: dist/*
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    name: Create GitHub release
+    needs:
+      - build
+      - build-macos
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        working-directory: dist
+        run: sha256sum bindiff-* > SHA256SUMS
+
+      - name: Attest release assets
+        id: attest
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            dist/bindiff-*
+            dist/SHA256SUMS
+
+      - name: Add attestation bundle to release assets
+        env:
+          BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
+        run: cp "$BUNDLE_PATH" "dist/bindiff-${GITHUB_REF_NAME}-attestation.json"
+
+      - name: Create release with generated notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes
