@@ -10,6 +10,12 @@ universal Mach-O files.
 
 Analysis tools such as `readelf` and `otool` are discovered on `$PATH`.
 
+## Examples
+
+[![Overview example](.github/overview.png)](.github/overview.png)
+
+[![otool example](.github/otool.png)](.github/otool.png)
+
 ## Build and run
 
 ```sh
