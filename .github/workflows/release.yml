@@ -1,15 +1,19 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (exactly major.minor.patch, for example, 0.1.0)
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 env:
   CARGO_TERM_COLOR: always
+  BDIFF_VERSION: ${{ inputs.tag }}
 
 jobs:
   build:
@@ -48,7 +52,7 @@ jobs:
         if: matrix.platform == 'unix'
         shell: bash
         run: |
-          package="bdiff-${GITHUB_REF_NAME}-${{ matrix.target }}"
+          package="bdiff-${BDIFF_VERSION}-${{ matrix.target }}"
           mkdir -p "stage/${package}" dist
           cp "target/${{ matrix.target }}/release/bdiff" README.md LICENSE "stage/${package}/"
           tar -C stage -czf "dist/${package}.tar.gz" "${package}"
@@ -57,7 +61,7 @@ jobs:
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          $package = "bdiff-$env:GITHUB_REF_NAME-${{ matrix.target }}"
+          $package = "bdiff-$env:BDIFF_VERSION-${{ matrix.target }}"
           New-Item -ItemType Directory -Force -Path "stage/$package", dist
           Copy-Item -Path "target/${{ matrix.target }}/release/bdiff.exe", README.md, LICENSE -Destination "stage/$package/"
           Compress-Archive -Path "stage/$package" -DestinationPath "dist/$package.zip"
@@ -92,7 +96,7 @@ jobs:
 
       - name: Create and package universal binary
         run: |
-          package="bdiff-${GITHUB_REF_NAME}-universal-apple-darwin"
+          package="bdiff-${BDIFF_VERSION}-universal-apple-darwin"
           mkdir -p "stage/${package}" dist
           lipo -create \
             target/aarch64-apple-darwin/release/bdiff \
@@ -145,9 +149,10 @@ jobs:
       - name: Add attestation bundle to release assets
         env:
           BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
-        run: cp "$BUNDLE_PATH" "dist/bdiff-${GITHUB_REF_NAME}-attestation.json"
+        run: cp "$BUNDLE_PATH" "dist/bdiff-${BDIFF_VERSION}-attestation.json"
 
       - name: Create release with generated notes
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$BDIFF_VERSION" dist/* --target "$GITHUB_SHA" --generate-notes
