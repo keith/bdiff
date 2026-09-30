@@ -342,6 +342,33 @@ impl PassRegistry {
                 &["-tvV", "{path}"],
                 true,
             ),
+            command(
+                "dwarfdump-all",
+                "dwarfdump --all",
+                "Full DWARF debug information from all supported sections",
+                &[Elf, MachO, Pe],
+                "dwarfdump",
+                &["--all", "{path}"],
+                true,
+            ),
+            command(
+                "objdump-full",
+                "objdump -xDs",
+                "All headers, relocations, symbols, section contents, and disassembly",
+                &[Elf, Pe],
+                "objdump",
+                &["-x", "-D", "-s", "{path}"],
+                true,
+            ),
+            command(
+                "macho-objdump-full",
+                "objdump --macho -xDs",
+                "All Mach-O headers, relocations, symbols, section contents, and disassembly",
+                &[MachO],
+                "objdump",
+                &["--macho", "-x", "-D", "-s", "{path}"],
+                true,
+            ),
             sparse_xxd(
                 "xxd",
                 "xxd",
@@ -352,7 +379,13 @@ impl PassRegistry {
         for pass in &mut passes {
             pass.lazy = matches!(
                 pass.id.as_str(),
-                "strings" | "disassembly" | "macho-disassembly" | "xxd"
+                "strings"
+                    | "disassembly"
+                    | "macho-disassembly"
+                    | "dwarfdump-all"
+                    | "objdump-full"
+                    | "macho-objdump-full"
+                    | "xxd"
             );
         }
 
@@ -1049,7 +1082,15 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(
             lazy,
-            vec!["strings", "disassembly", "macho-disassembly", "xxd"]
+            vec![
+                "strings",
+                "disassembly",
+                "macho-disassembly",
+                "dwarfdump-all",
+                "objdump-full",
+                "macho-objdump-full",
+                "xxd",
+            ]
         );
     }
 
