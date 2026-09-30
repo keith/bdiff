@@ -26,25 +26,5 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
-      - name: Install Rust
-        run: |
-          rustup update stable --no-self-update
-          rustup default stable
-          rustup component add clippy rustfmt
-
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
-      - name: Build all targets
-        run: cargo build --locked --all-targets
-
-      - name: Run tests
-        run: cargo test --locked --all-targets
-
-      - name: Run Clippy
-        run: cargo clippy --locked --all-targets -- -D warnings
-
-      - name: Check documentation
-        env:
-          RUSTDOCFLAGS: -D warnings
-        run: cargo doc --locked --no-deps
+      - name: Check
+        run: ./check.sh
