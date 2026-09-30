@@ -1,6 +1,6 @@
-# bindiff
+# bdiff
 
-`bindiff` is a TUI for comparing binaries. It runs multiple tools
+`bdiff` is a TUI for comparing binaries. It runs multiple tools
 against both binaries and presents their output in a side-by-side diff.
 It understands ELF, Mach-O, PE/COFF, regular and thin archives, and
 universal Mach-O files.
@@ -12,14 +12,14 @@ Analysis commands such as `readelf` and `otool` are used from the local
 
 ```sh
 cargo build --release
-./target/release/bindiff path/to/left path/to/right
+./target/release/bdiff path/to/left path/to/right
 ```
 
 For logs, scripts, and smoke tests, `--report` emits all applicable
 comparisons without a UI:
 
 ```sh
-bindiff --report old.bin new.bin
+bdiff --report old.bin new.bin
 ```
 
 ## Navigation

@@ -48,18 +48,18 @@ jobs:
         if: matrix.platform == 'unix'
         shell: bash
         run: |
-          package="bindiff-${GITHUB_REF_NAME}-${{ matrix.target }}"
+          package="bdiff-${GITHUB_REF_NAME}-${{ matrix.target }}"
           mkdir -p "stage/${package}" dist
-          cp "target/${{ matrix.target }}/release/bindiff" README.md LICENSE "stage/${package}/"
+          cp "target/${{ matrix.target }}/release/bdiff" README.md LICENSE "stage/${package}/"
           tar -C stage -czf "dist/${package}.tar.gz" "${package}"
 
       - name: Package Windows binary
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          $package = "bindiff-$env:GITHUB_REF_NAME-${{ matrix.target }}"
+          $package = "bdiff-$env:GITHUB_REF_NAME-${{ matrix.target }}"
           New-Item -ItemType Directory -Force -Path "stage/$package", dist
-          Copy-Item -Path "target/${{ matrix.target }}/release/bindiff.exe", README.md, LICENSE -Destination "stage/$package/"
+          Copy-Item -Path "target/${{ matrix.target }}/release/bdiff.exe", README.md, LICENSE -Destination "stage/$package/"
           Compress-Archive -Path "stage/$package" -DestinationPath "dist/$package.zip"
 
       - name: Upload release asset
@@ -92,13 +92,13 @@ jobs:
 
       - name: Create and package universal binary
         run: |
-          package="bindiff-${GITHUB_REF_NAME}-universal-apple-darwin"
+          package="bdiff-${GITHUB_REF_NAME}-universal-apple-darwin"
           mkdir -p "stage/${package}" dist
           lipo -create \
-            target/aarch64-apple-darwin/release/bindiff \
-            target/x86_64-apple-darwin/release/bindiff \
-            -output "stage/${package}/bindiff"
-          lipo -verify_arch arm64 x86_64 "stage/${package}/bindiff"
+            target/aarch64-apple-darwin/release/bdiff \
+            target/x86_64-apple-darwin/release/bdiff \
+            -output "stage/${package}/bdiff"
+          lipo -verify_arch arm64 x86_64 "stage/${package}/bdiff"
           cp README.md LICENSE "stage/${package}/"
           tar -C stage -czf "dist/${package}.tar.gz" "${package}"
 
@@ -132,20 +132,20 @@ jobs:
 
       - name: Generate checksums
         working-directory: dist
-        run: sha256sum bindiff-* > SHA256SUMS
+        run: sha256sum bdiff-* > SHA256SUMS
 
       - name: Attest release assets
         id: attest
         uses: actions/attest@v4
         with:
           subject-path: |
-            dist/bindiff-*
+            dist/bdiff-*
             dist/SHA256SUMS
 
       - name: Add attestation bundle to release assets
         env:
           BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
-        run: cp "$BUNDLE_PATH" "dist/bindiff-${GITHUB_REF_NAME}-attestation.json"
+        run: cp "$BUNDLE_PATH" "dist/bdiff-${GITHUB_REF_NAME}-attestation.json"
 
       - name: Create release with generated notes
         env:

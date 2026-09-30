@@ -1,5 +1,5 @@
 [package]
-name = "bindiff"
+name = "bdiff"
 version = "0.1.0"
 edition = "2024"
 description = "A terminal UI for progressively comparing binaries"

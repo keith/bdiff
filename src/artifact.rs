@@ -72,7 +72,7 @@ pub struct Analysis {
 impl Analysis {
     pub fn open(left: &Path, right: &Path, max_depth: usize) -> Result<Self> {
         let tempdir = tempfile::Builder::new()
-            .prefix("bindiff-")
+            .prefix("bdiff-")
             .tempdir()
             .context("failed to create extraction directory")?;
         let mut loader = Loader {
