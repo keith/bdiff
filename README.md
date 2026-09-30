@@ -1,12 +1,14 @@
 # bdiff
 
-`bdiff` is a TUI for comparing binaries. It runs multiple tools
-against both binaries and presents their output in a side-by-side diff.
+`bdiff` is a TUI for comparing binaries. It runs multiple tools against
+both binaries and presents their output in a side-by-side diff. It
+presents multiple tabs so you can see varying diffs depending on what
+you're trying to compare.
+
 It understands ELF, Mach-O, PE/COFF, regular and thin archives, and
 universal Mach-O files.
 
-Analysis commands such as `readelf` and `otool` are used from the local
-`$PATH`.
+Analysis tools such as `readelf` and `otool` are discovered on `$PATH`.
 
 ## Build and run
 
