@@ -16,6 +16,26 @@ Analysis tools such as `readelf` and `otool` are discovered on `$PATH`.
 
 [![otool example](.github/otool.png)](.github/otool.png)
 
+## Installation
+
+With Homebrew:
+
+```sh
+brew install keith/formulae/bdiff
+```
+
+With Cargo:
+
+```sh
+cargo install --locked --git https://github.com/keith/bdiff
+```
+
+Or from a local checkout:
+
+```sh
+cargo install --locked --path .
+```
+
 ## Build and run
 
 ```sh
