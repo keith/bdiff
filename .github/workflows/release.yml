@@ -139,23 +139,34 @@ jobs:
 
       - name: Generate checksums
         working-directory: dist
-        run: sha256sum bdiff-* > SHA256SUMS
+        run: |
+          {
+            echo '## SHA-256 checksums'
+            echo
+            echo '```text'
+            sha256sum bdiff-*
+            echo '```'
+          } > ../release-notes.md
 
       - name: Attest release assets
         id: attest
         uses: actions/attest@v4
         with:
-          subject-path: |
-            dist/bdiff-*
-            dist/SHA256SUMS
+          subject-path: dist/bdiff-*
 
       - name: Add attestation bundle to release assets
         env:
           BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
         run: cp "$BUNDLE_PATH" "dist/bdiff-${BDIFF_VERSION}-attestation.json"
 
-      - name: Create release with generated notes
+      - name: Create draft release with generated notes
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$BDIFF_VERSION" dist/* --target "$GITHUB_SHA" --generate-notes
+        run: gh release create "$BDIFF_VERSION" dist/* --target "$GITHUB_SHA" --generate-notes --notes-file release-notes.md --draft
+
+      - name: Publish immutable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit "$BDIFF_VERSION" --draft=false
