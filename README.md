@@ -55,6 +55,7 @@ bdiff --report old.bin new.bin
 | Key | Action |
 | --- | --- |
 | `[` / `]` | Previous / next tab |
+| `Tab` / `Shift-Tab` | Next / previous tab |
 | `j` / `k`, arrows | Scroll down / up |
 | `h` / `l`, arrows | Pan left / right |
 | `PageUp` / `PageDown` | Scroll one page |

@@ -418,6 +418,9 @@ impl App {
             }
             KeyCode::Char(']') | KeyCode::Char('}') => self.switch_tab(1),
             KeyCode::Char('[') | KeyCode::Char('{') => self.switch_tab(-1),
+            KeyCode::Tab if key.modifiers.contains(KeyModifiers::SHIFT) => self.switch_tab(-1),
+            KeyCode::Tab => self.switch_tab(1),
+            KeyCode::BackTab => self.switch_tab(-1),
             KeyCode::Down | KeyCode::Char('j') => self.scroll_vertical(1),
             KeyCode::Up | KeyCode::Char('k') => self.scroll_vertical(-1),
             KeyCode::PageDown => self.scroll_vertical(self.body_height as isize),
@@ -537,7 +540,7 @@ fn draw_tabs(frame: &mut ratatui::Frame<'_>, area: Rect, app: &App) {
         .map(|index| tab_title(app, *index))
         .collect::<Vec<_>>();
     let title = format!(
-        " Passes  [ / ] switch{}{} ",
+        " Passes  [ / ] or Tab switch{}{} ",
         if start > 0 { "  ‹" } else { "" },
         if end < applicable.len() { "  ›" } else { "" }
     );
@@ -732,7 +735,7 @@ fn draw_footer(frame: &mut ratatui::Frame<'_>, area: Rect, app: &App) {
         Span::raw(format!("  {description}")),
     ]);
     let second = Line::from(
-        " b files  [/] pass  j/k scroll  h/l pan  n forward  N back  g/G ends  ? help  q quit",
+        " b files  [/] or Tab pass  j/k scroll  h/l pan  n forward  N back  g/G ends  ? help  q quit",
     );
     frame.render_widget(Paragraph::new(vec![first, second]), area);
 }
@@ -785,7 +788,8 @@ fn draw_help(frame: &mut ratatui::Frame<'_>, area: Rect) {
     frame.render_widget(Clear, popup);
     let text = vec![
         Line::from("Passes"),
-        Line::from("  [ / ]     previous / next pass (kept separate from text movement)"),
+        Line::from("  [ / ]     previous / next pass"),
+        Line::from("  Tab / Shift-Tab  next / previous pass"),
         Line::from("  [diff]    output differs; tab order always remains stable"),
         Line::from("  [same]    output is identical"),
         Line::from("  [run]     scheduled; [lazy] runs only when selected"),
